@@ -21,6 +21,9 @@ h1 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-gap: 10px;
+
+    /* ★スマホのスクロールを完全無効化 */
+    touch-action: none;
 }
 
 .cell {

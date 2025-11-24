@@ -4,27 +4,19 @@ $(function () {
     let board = [];
     let score = 0;
 
-    // 初期化
     function init() {
-        board = [];
-        for (let y = 0; y < SIZE; y++) {
-            board[y] = [];
-            for (let x = 0; x < SIZE; x++) {
-                board[y][x] = 0;
-            }
-        }
+        board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
         score = 0;
         addRandom();
         addRandom();
         draw();
     }
 
-    // 空きマスにランダム追加
     function addRandom() {
         let empty = [];
         for (let y = 0; y < SIZE; y++) {
             for (let x = 0; x < SIZE; x++) {
-                if (board[y][x] === 0) empty.push({x, y});
+                if (board[y][x] === 0) empty.push({ x, y });
             }
         }
         if (empty.length === 0) return;
@@ -32,7 +24,6 @@ $(function () {
         board[r.y][r.x] = Math.random() < 0.9 ? 2 : 4;
     }
 
-    // 盤描画
     function draw() {
         const $g = $("#game");
         $g.empty();
@@ -49,7 +40,6 @@ $(function () {
         $("#score").text("Score: " + score);
     }
 
-    // 1行スライド処理
     function slide(row) {
         row = row.filter(v => v !== 0);
 
@@ -67,7 +57,6 @@ $(function () {
         return row;
     }
 
-    // 移動処理
     function move(dir) {
         let moved = false;
 
@@ -91,8 +80,7 @@ $(function () {
 
         if (dir === "up") {
             for (let x = 0; x < SIZE; x++) {
-                let col = [];
-                for (let y = 0; y < SIZE; y++) col.push(board[y][x]);
+                let col = board.map(r => r[x]);
                 let newCol = slide(col);
                 for (let y = 0; y < SIZE; y++) {
                     if (board[y][x] !== newCol[y]) moved = true;
@@ -103,9 +91,7 @@ $(function () {
 
         if (dir === "down") {
             for (let x = 0; x < SIZE; x++) {
-                let col = [];
-                for (let y = 0; y < SIZE; y++) col.push(board[y][x]);
-                col.reverse();
+                let col = board.map(r => r[x]).reverse();
                 let newCol = slide(col).reverse();
                 for (let y = 0; y < SIZE; y++) {
                     if (board[y][x] !== newCol[y]) moved = true;
@@ -121,7 +107,6 @@ $(function () {
         }
     }
 
-    // ゲームオーバー判定
     function checkGameOver() {
         for (let y = 0; y < SIZE; y++) {
             for (let x = 0; x < SIZE; x++) {
@@ -134,7 +119,7 @@ $(function () {
         init();
     }
 
-    // キー操作
+    // PC：キー操作
     $(document).on("keydown", function (e) {
         if (e.key === "ArrowLeft") move("left");
         if (e.key === "ArrowRight") move("right");
@@ -142,18 +127,29 @@ $(function () {
         if (e.key === "ArrowDown") move("down");
     });
 
-    // スワイプ（スマホ対応）
-    let sx, sy;
+    // 📱 スマホ：タッチ処理（改善版）
+    let sx = 0, sy = 0;
+
     $("#game").on("touchstart", function (e) {
-        sx = e.originalEvent.touches[0].clientX;
-        sy = e.originalEvent.touches[0].clientY;
+        e.preventDefault(); // スクロール無効
+        const t = e.originalEvent.touches[0];
+        sx = t.clientX;
+        sy = t.clientY;
+    });
+
+    $("#game").on("touchmove", function (e) {
+        e.preventDefault(); // 重要
     });
 
     $("#game").on("touchend", function (e) {
-        let ex = e.originalEvent.changedTouches[0].clientX;
-        let ey = e.originalEvent.changedTouches[0].clientY;
-        let dx = ex - sx;
-        let dy = ey - sy;
+        e.preventDefault(); // スクロール無効
+
+        const t = e.originalEvent.changedTouches[0];
+        const ex = t.clientX;
+        const ey = t.clientY;
+
+        const dx = ex - sx;
+        const dy = ey - sy;
 
         if (Math.abs(dx) > Math.abs(dy)) {
             if (dx > 30) move("right");
